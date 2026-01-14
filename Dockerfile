@@ -9,9 +9,11 @@ RUN apt-get update && apt-get install -y \
     libzip-dev \
     zip \
     curl \
+    sqlite3 \
+    libsqlite3-dev \
+    && docker-php-ext-install pdo_mysql mbstring zip pdo_sqlite \
     && apt-get clean \
-    && rm -rf /var/lib/apt/lists/* \
-    && docker-php-ext-install pdo_mysql mbstring zip pdo_sqlite
+    && rm -rf /var/lib/apt/lists/*
 
 # Instalar Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
@@ -22,10 +24,11 @@ WORKDIR /var/www/html
 # Copiar arquivos do projeto
 COPY . .
 
+# Variáveis de ambiente para SQLite
 ENV DB_CONNECTION=sqlite
-ENV DB_DATABASE=database/database.sqlite
+ENV DB_DATABASE=/var/www/html/database/database.sqlite
 
-# Instalar dependências PHP
+# Instalar dependências PHP do Laravel
 RUN composer install --no-dev --optimize-autoloader
 
 # Permissões de storage e cache
