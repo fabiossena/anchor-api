@@ -1,5 +1,4 @@
-# Escolhendo imagem PHP oficial com extensões necessárias
-FROM php:8.2-fpm
+FROM php:8.2-apache
 
 # Instalar dependências do sistema
 RUN apt-get update && apt-get install -y \
@@ -10,27 +9,47 @@ RUN apt-get update && apt-get install -y \
     libzip-dev \
     zip \
     curl \
-    && docker-php-ext-install pdo_mysql mbstring zip pdo_sqlite
+    sqlite3 \
+    libsqlite3-dev \
+    && docker-php-ext-install pdo_mysql mbstring zip pdo_sqlite \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# Habilitar mod_rewrite (Laravel precisa)
+RUN a2enmod rewrite
 
 # Instalar Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
-# Setar diretório de trabalho
+# Diretório de trabalho
 WORKDIR /var/www/html
 
-# Copiar arquivos do projeto
+# Copiar projeto
 COPY . .
 
-ENV DB_CONNECTION=sqlite
-ENV DB_DATABASE=database/database.sqlite
+RUN php artisan key:generate || true && \
+    php artisan migrate --force || true && \
+    php artisan optimize:clear && \
+    php artisan config:clear && \
+    php artisan route:clear && \
+    php artisan view:clear
 
-# Instalar dependências PHP
+# Configuração do Apache (DocumentRoot /public)
+COPY ./docker/vhost.conf /etc/apache2/sites-available/000-default.conf
+
+# Variáveis de ambiente (SQLite)
+ENV DB_CONNECTION=sqlite
+ENV DB_DATABASE=/var/www/html/database/database.sqlite
+
+# Instalar dependências do Laravel
 RUN composer install --no-dev --optimize-autoloader
 
-# Permissões de storage e cache
-RUN chown -R www-data:www-data storage bootstrap/cache
+# Permissões
+RUN chown -R www-data:www-data /var/www/html \
+    && chmod -R 775 storage bootstrap/cache
 
-# Expor porta do PHP-FPM
-EXPOSE 9000
+# Apache escuta na porta 80
+EXPOSE 80
 
-CMD ["php-fpm"]
+# Iniciar Apache
+CMD ["apache2-foreground"]
