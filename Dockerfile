@@ -24,6 +24,11 @@ WORKDIR /var/www/html
 # Copiar arquivos do projeto
 COPY . .
 
+RUN a2enmod rewrite
+
+COPY ./docker/vhost.conf /etc/apache2/sites-available/000-default.conf
+
+
 # Variáveis de ambiente para SQLite
 ENV DB_CONNECTION=sqlite
 ENV DB_DATABASE=/var/www/html/database/database.sqlite
