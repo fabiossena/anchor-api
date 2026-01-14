@@ -38,6 +38,7 @@ RUN composer install --no-dev --optimize-autoloader
 
 # Permissões de storage e cache
 RUN chown -R www-data:www-data storage bootstrap/cache
+RUN chown -R www-data:www-data /var/www/html
 
 # Expor porta do PHP-FPM
 EXPOSE 9000
