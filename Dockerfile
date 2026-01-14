@@ -40,7 +40,12 @@ COPY ./docker/vhost.conf /etc/apache2/sites-available/000-default.conf
 # Variáveis de ambiente (SQLite)
 ENV DB_CONNECTION=sqlite
 ENV DB_DATABASE=/var/www/html/database/database.sqlite
-
+ENV APP_ENV=production \
+    APP_DEBUG=false \
+    CACHE_DRIVER=file \
+    SESSION_DRIVER=file \
+    QUEUE_CONNECTION=sync
+    
 # Instalar dependências do Laravel
 RUN composer install --no-dev --optimize-autoloader
 
