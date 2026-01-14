@@ -27,12 +27,12 @@ WORKDIR /var/www/html
 # Copiar projeto
 COPY . .
 
-RUN php artisan key:generate || true && \
-    php artisan migrate --force || true && \
-    php artisan optimize:clear && \
-    php artisan config:clear && \
-    php artisan route:clear && \
-    php artisan view:clear
+# RUN php artisan key:generate || true && \
+#     php artisan migrate --force || true && \
+#     php artisan optimize:clear && \
+#     php artisan config:clear && \
+#     php artisan route:clear && \
+#     php artisan view:clear
 
 # Configuração do Apache (DocumentRoot /public)
 COPY ./docker/vhost.conf /etc/apache2/sites-available/000-default.conf
